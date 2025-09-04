@@ -25,3 +25,6 @@ Note: For this project I recommend to set up a virtual environment so that whene
 3. to start the server navigate to the directory you made in the previous step and run [py manage.py runserver]
 
 4. http://127.0.0.1:8000/ if you see that url you did everything correctly 
+
+
+**Frontend Set up (React)**
