@@ -1,4 +1,3 @@
-Read me file (we can change this later)
 **Weather tracker Application** 
 
 **Description** 
