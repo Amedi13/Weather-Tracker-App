@@ -6,32 +6,46 @@ The Weather Tracker App allows users to view current weather conditions and revi
 **Python**
 1. Make sure you have python installed. If not go here [https://www.python.org/downloads/] to install it and set up in your evironmental variables. 
 
-2. To verify it successfully installed open up a new terminal window and run [py --version] or [python --version] (which ever works)
+2. To verify it successfully installed open up a new terminal window and run 'py --version' or 'python --version' (which ever works)
 
 **Clone the Repository**
+Note: In a directory of your choice do the following steps
+
 1. git clone https://github.com/Amedi13/Weather-Tracker-App.git 
 
-2. cd Weather-Tracker-App
+2. 'cd Weather-Tracker-App' 
+
+3. You should now be in the project root
+    'weather-tracker-app' 
 
 **Virtual Environment** 
 Note: It’s recommended to use a virtual environment so dependencies don’t install globally.
 
-1. Open up a new terminal window and run *pip install virtualenv*
+Note: To Avoid confusion, the virtual environment should always be created inside 'wt-services' so everyone knows where it lives
 
-2. *cd wt-services*
+1. 'cd wt-services' 
 
-3. *.\env\Scripts\Activate* this should bring you in a Virtual Enviorment
+2. create the virtual enviroment 'py -m venv env' 
+
+3. Activate it '.\env\Scripts\Activate'
+
+⚠️ Important:
+- Always activate the environment before installing packages or running the server.
+- Do not create multiple environments in different folders — always use wt-services/env.  (only need to do this once)
 
 **Backend Set Up (Django)**
+Note: Make sure the virtual environment is active ((env) is showing).
+Note: Install Django and any dependencies (first time only):
 
-1. Make sure you are in the Virtual Environment, and run *pip install django* in a new terminal window
+1. 'pip install django'
 
-2. to start the server navigate to the directory you made in the previous step and run *py manage.py runserver*
+2. 'cd wt-services'
+
+3. 'py manage.py runserver
 
 3. Open your browser and go to:
     http://127.0.0.1:8000/
     If you see the Django welcome page or your Weather Tracker app, everything is set up correctly ✅.
-
 
 
 **Frontend Set up (React)**
