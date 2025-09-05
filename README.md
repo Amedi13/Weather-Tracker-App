@@ -49,3 +49,24 @@ Note: Install Django and any dependencies (first time only):
 
 
 **Frontend Set up (React)**
+Note: From any directory of your choice do the following. 
+Note: run the follwoing commands
+
+1. `node -v` 
+
+2. `npm -v`
+
+- If either one fails downliad node.js from here https://nodejs.org/en 
+
+    **Create the react App**
+
+    1. `cd Weather-Tracker-App`
+
+    2. npx create-react-app frontend
+
+    3. `cd frontend`
+
+    4. `npm start`
+
+-You should see the React starter page at http://localhost:3000
+Leave this terminal running while you work on React.
