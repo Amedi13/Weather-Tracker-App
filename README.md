@@ -18,12 +18,13 @@ Note: It’s recommended to use a virtual environment so dependencies don’t in
 
 1. Open up a new terminal window and run *pip install virtualenv*
 
-2. to verify the Virtual Environment was installed succesfully navigate by running *py -m venv env* and then running
-*.\env\Scripts\Activate*
+2. *cd wt-services*
+
+3. *.\env\Scripts\Activate* this should bring you in a Virtual Enviorment
 
 **Backend Set Up (Django)**
 
-1. Make sure you are in the Virtual Environment, and run *pip install django* in a terminal window
+1. Make sure you are in the Virtual Environment, and run *pip install django* in a new terminal window
 
 2. to start the server navigate to the directory you made in the previous step and run *py manage.py runserver*
 
