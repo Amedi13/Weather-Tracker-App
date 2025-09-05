@@ -60,11 +60,9 @@ Note: run the follwoing commands
 
     **Create the react App**
 
-    1. `cd Weather-Tracker-App`
+    1. `cd Weather-Tracker-App/frontend`
 
-    2. npx create-react-app frontend
-
-    3. `cd frontend`
+    2. `npm install`
 
     4. `npm start`
 
