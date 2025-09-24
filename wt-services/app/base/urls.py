@@ -5,5 +5,5 @@ from . import views
 
 urlpatterns =[
     path('', views.getData),
-    path('', views.postData)
+    #path('', views.postData)
 ]

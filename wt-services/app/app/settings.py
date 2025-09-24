@@ -12,8 +12,19 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv, find_dotenv
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+#Load .env
+dotenv_path = BASE_DIR / '.env'
+if not dotenv_path.exists():
+    dotenv_path = find_dotenv(usecwd=True)
+load_dotenv(dotenv_path=dotenv_path)
+
+#API 
+NOAA_API_BASE_URL = os.environ.get('NOAA_API_BASE_URL', 'https://www.ncdc.noaa.gov/cdo-web/api/v2/')
+NOAA_API_TOKEN = os.environ.get('NOAA_API_TOKEN')
 
 
 # Quick-start development settings - unsuitable for production
