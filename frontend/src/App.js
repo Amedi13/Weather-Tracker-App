@@ -6,28 +6,28 @@ class App extends React.Component {
     details: [], 
   }
 
+  /**
+   * Locql backend server and fetch data from there
+   */
   componentDidMount() {
-    let data; 
-    axios.get('http://127.0.0.1:8000/wel')
-    .then(res=> {
-      data= res.data; 
-      this.setState({
-        details: data
+    axios.get('http://127.0.0.1:8000/api/datasets/?limit=3')
+      .then(res => {
+        this.setState({ details: res.data.results || [] });
+      })
+      .catch(err => {
+        console.error(err);
       });
-    })
-    .catch(err => {})
   }
 
   render() {
     return (
       <div>
-        {this.state.details.map((detail, id) (
-          <div key={id}>
-            <h1>{detail.title}</h1>
-            <p>{detail.description}</p>
-          </div>
+        {this.state.details.map((detail, index) => (
+          <h2 key={index}>{detail.name}</h2> 
         ))}
       </div>
     )
   }
 }
+
+export default App;
