@@ -45,7 +45,7 @@ Note: Install Django and any dependencies (first time only):
 
 3. Open your browser and go to:
     `http://127.0.0.1:8000/`
-    If you see the Django welcome page or your Weather Tracker app, everything is set up correctly ✅.
+    If you see the Django welcome page everything is set up correctly ✅.
 
 
 **Frontend Set up (React)**
