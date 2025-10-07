@@ -20,5 +20,5 @@ from django.urls import path, include
 #All the Url routing is taken care here
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('base.urls')) #HTTP Routing 
+    path('', include('base.urls')), #HTTP Routing 
 ]

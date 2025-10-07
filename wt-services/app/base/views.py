@@ -31,7 +31,7 @@ def getData(request):
         log.error("NOAA /datasets failed: %s %s", resp.status_code, resp.text[:500])
         payload = {"error": "NOAA request failed"}
         print("Token present?", bool(settings.NOAA_API_TOKEN))
-        print("Token preview:", repr(settings.NOAA_API_TOKEN))  # should NOT include quotes
+        print("Token preview:", repr(settings.NOAA_API_TOKEN))
         print("Base URL:", settings.NOAA_API_BASE_URL)
         if settings.DEBUG:
             payload.update({"status_code": resp.status_code, "response": resp.text})
