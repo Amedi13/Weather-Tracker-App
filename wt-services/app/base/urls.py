@@ -5,5 +5,7 @@ from . import views
 
 urlpatterns =[
     path('', views.getData),
+    path('api/data/', views.weather_data),
+    path('api/locations/', views.get_locations),
     #path('', views.postData)
 ]
