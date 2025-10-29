@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import { getDatasets, getObservations } from './api/noaa';
-
+//import {  BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'; // jason. i added this
+//import QueuePage from './QueuePage'; // jason. i added this . Do not currently need but may
 function App() {
   const [details, setDetails] = useState([]);
   const [forecastVisible, setForecastVisible] = useState(false);
@@ -14,6 +15,20 @@ function App() {
   const [loadingToday, setLoadingToday] = useState(false);
   const [todayError, setTodayError] = useState('');
 
+
+  {/* jason . i added */ }
+  const [showQueue, setShowQueue] = useState(false);
+  const toggleQueue = () => {
+  setShowQueue(!showQueue);
+  };
+
+
+
+
+
+
+
+
   useEffect(() => {
     getDatasets(3)
       .then((d) => setDetails(d.results || []))
@@ -23,7 +38,7 @@ function App() {
       });
   }, []);
 
-  // Data call 
+  // Data call
   const loadSevenDayTmax = async () => {
     if (forecastVisible) { setForecastVisible(false); return; }
 
@@ -90,12 +105,24 @@ function App() {
           <h1>Weather Tracker</h1>
           <p className="tagline">Real-time weather data, alerts and historical trends.</p>
           <div className="cta-row">
+
+        {/* jason. i added */}
+          <button className="btn primary" onClick={toggleQueue}>
+          {showQueue ? 'Hide Pinned Locations' : 'Show Pinned Locations'}
+          </button>
+
+
+
+
+
             <a className="btn primary" href="/datasets">View Data</a>
             <a className="btn ghost" href="/about">Learn More</a>
 
             <button className="btn primary" onClick={loadSevenDayTmax}>
               {forecastVisible ? 'Hide 7-day TMAX' : 'Show 7-day TMAX'}
             </button>
+
+
 
             <button className="btn ghost" onClick={loadTodaySample}>
               {todayVisible ? "Hide today's sample" : "Show today's sample"}
@@ -105,6 +132,24 @@ function App() {
       </header>
 
       <main className="container">
+
+
+{/* jason. Added below */}
+      {showQueue && (
+  <section className="queue-interface" style={{display:'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '40px'}}>
+    <h2 style={{ textAlign: 'center' }}>Pin Locations Below</h2>
+    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+    <button className="btn primary" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
+    <button className="btn ghost" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
+    <button className="btn primary" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
+    <button className="btn ghost" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
+  </div>
+  </section>
+)}
+
+
+
+
         <section className="features">
           <article><h3>Live Data</h3><p>Visualise up-to-date observations.</p></article>
           <article><h3>Alerts</h3><p>Subscribe to threshold conditions.</p></article>
@@ -166,11 +211,18 @@ function App() {
             </div>
           )}
         </section>
+
+
+
+
+
       </main>
 
       <footer className="site-footer">
         <p>© {new Date().getFullYear()} Weather Tracker · Built with dev team</p>
       </footer>
+
+
     </div>
   );
 }
