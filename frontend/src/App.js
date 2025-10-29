@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import './App.css';
 import { getDatasets, getObservations } from './api/noaa';
 
@@ -13,6 +13,9 @@ function App() {
   const [today, setToday] = useState(null);
   const [loadingToday, setLoadingToday] = useState(false);
   const [todayError, setTodayError] = useState('');
+
+  const forecastRef = useRef(null);
+  const todayRef = useRef(null);
 
   useEffect(() => {
     getDatasets(3)
@@ -45,6 +48,9 @@ function App() {
       }));
       setForecast(rows);
       setForecastVisible(true);
+      setTimeout(() => {
+        forecastRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
     } catch (err) {
       console.error("observations error:", err.response?.status, err.response?.data || err.message);
       setForecastError('Could not fetch observations from /api/data/.');
@@ -75,6 +81,9 @@ function App() {
         description: "Charlotte daily temperatures",
       });
       setTodayVisible(true);
+      setTimeout(() => {
+        todayRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 200);
     } catch (err) {
       console.error("today error:", err.response?.status, err.response?.data || err.message);
       setTodayError("Could not fetch today's sample observations.");
@@ -92,17 +101,16 @@ function App() {
           <div className="cta-row">
             <a className="btn primary" href="/datasets">View Data</a>
             <a className="btn ghost" href="/about">Learn More</a>
-
             <button className="btn primary" onClick={loadSevenDayTmax}>
               {forecastVisible ? 'Hide 7-day TMAX' : 'Show 7-day TMAX'}
             </button>
-
             <button className="btn ghost" onClick={loadTodaySample}>
               {todayVisible ? "Hide today's sample" : "Show today's sample"}
             </button>
           </div>
         </div>
       </header>
+  
 
       <main className="container">
         <section className="features">
@@ -127,7 +135,7 @@ function App() {
           </div>
         </section>
 
-        <section className="forecast">
+        <section className="forecast" ref={forecastRef}>
           {loadingForecast && <p className="muted">Loading 7-day TMAX…</p>}
           {forecastError && <p className="muted" style={{ color: 'crimson' }}>{forecastError}</p>}
           {forecastVisible && !loadingForecast && (
@@ -154,7 +162,7 @@ function App() {
           )}
         </section>
 
-        <section className="today">
+        <section className="today" ref={todayRef}>
           {loadingToday && <p className="muted">Loading today’s sample…</p>}
           {todayError && <p className="muted" style={{ color: 'crimson' }}>{todayError}</p>}
           {todayVisible && !loadingToday && today && (
