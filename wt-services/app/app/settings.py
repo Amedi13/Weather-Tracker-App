@@ -52,7 +52,6 @@ INSTALLED_APPS = [
     'rest_framework',
     'base',
    # "base.apps.BaseConfig"
-    'corsheaders',
 ]
 
 CORS_ALLOWED_ORIGINS = [
