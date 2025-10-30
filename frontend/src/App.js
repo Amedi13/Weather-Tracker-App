@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './App.css';
 import { getDatasets, getObservations, search_locations } from './api/noaa';
-
+//import {  BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom'; // jason. i added this
+//import QueuePage from './QueuePage'; // jason. i added this . Do not currently need but may
 function App() {
   const [details, setDetails] = useState([]);
   const [forecastVisible, setForecastVisible] = useState(false);
@@ -14,37 +15,19 @@ function App() {
   const [loadingToday, setLoadingToday] = useState(false);
   const [todayError, setTodayError] = useState('');
 
-  const forecastRef = useRef(null);
-  const todayRef = useRef(null);
 
-  // Search locations UI state
-  const [locationQuery, setLocationQuery] = useState('');
-  const [locationResults, setLocationResults] = useState([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchError, setSearchError] = useState('');
-  const [locationDataResults, setLocationDataResults] = useState([]);
-
-  // --- helpers ---
-  const iso = (d) => d.toISOString().slice(0, 10);
-  const toC = (v) => (v == null ? null : v / 10);
-  const toF = (v) => (v == null ? null : (v / 10) * 9/5 + 32);
-
-  // Group NOAA /data rows (TMAX/TMIN) by date into {date,tmax_c,tmin_c}
-  const groupObsByDate = (rows) => {
-    const byDate = {};
-    for (const r of rows || []) {
-      const d = r.date.slice(0, 10);
-      (byDate[d] ??= {});
-      byDate[d][r.datatype] = r.value;
-    }
-    return Object.entries(byDate)
-      .map(([date, v]) => ({
-        date,
-        tmax_c: toC(v.TMAX),
-        tmin_c: toC(v.TMIN),
-      }))
-      .sort((a, b) => a.date.localeCompare(b.date));
+  {/* jason . i added */ }
+  const [showQueue, setShowQueue] = useState(false);
+  const toggleQueue = () => {
+  setShowQueue(!showQueue);
   };
+
+
+
+
+
+
+
 
   useEffect(() => {
     getDatasets(3)
@@ -55,17 +38,9 @@ function App() {
       });
   }, []);
 
-// 7-day TMAX for the last searched location
-const loadSevenDayTmax = async () => {
-  if (forecastVisible) { setForecastVisible(false); return; }
-
-  // make sure we have at least one search result
-  if (!locationResults.length || !locationResults[0].id) {
-    setForecastError('Please search for a location first.');
-    return;
-  }
-
-  const locationid = locationResults[0].id;  // e.g., "CITY:US370005"
+  // Data call
+  const loadSevenDayTmax = async () => {
+    if (forecastVisible) { setForecastVisible(false); return; }
 
   setForecastError('');
   setLoadingForecast(true);
@@ -186,11 +161,24 @@ const loadSevenDayTmax = async () => {
           <h1>Weather Tracker</h1>
           <p className="tagline">Real-time weather data, alerts and historical trends.</p>
           <div className="cta-row">
+
+        {/* jason. i added */}
+          <button className="btn primary" onClick={toggleQueue}>
+          {showQueue ? 'Hide Pinned Locations' : 'Show Pinned Locations'}
+          </button>
+
+
+
+
+
             <a className="btn primary" href="/datasets">View Data</a>
             <a className="btn ghost" href="/about">Learn More</a>
             <button className="btn primary" onClick={loadSevenDayTmax}>
               {forecastVisible ? 'Hide 7-day TMAX' : 'Show 7-day TMAX'}
             </button>
+
+
+
             <button className="btn ghost" onClick={loadTodaySample}>
               {todayVisible ? "Hide today's sample" : "Show today's sample"}
             </button>
@@ -200,6 +188,24 @@ const loadSevenDayTmax = async () => {
   
 
       <main className="container">
+
+
+{/* jason. Added below */}
+      {showQueue && (
+  <section className="queue-interface" style={{display:'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '40px'}}>
+    <h2 style={{ textAlign: 'center' }}>Pin Locations Below</h2>
+    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+    <button className="btn primary" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
+    <button className="btn ghost" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
+    <button className="btn primary" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
+    <button className="btn ghost" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
+  </div>
+  </section>
+)}
+
+
+
+
         <section className="features">
           <article><h3>Live Data</h3><p>Visualise up-to-date observations.</p></article>
           <article><h3>Alerts</h3><p>Subscribe to threshold conditions.</p></article>
@@ -309,11 +315,18 @@ const loadSevenDayTmax = async () => {
             </div>
           )}
         </section>
+
+
+
+
+
       </main>
 
       <footer className="site-footer">
         <p>© {new Date().getFullYear()} Weather Tracker · team 4</p>
       </footer>
+
+
     </div>
   );
 }
