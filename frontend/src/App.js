@@ -1,6 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './App.css';
 import { getDatasets, getObservations, search_locations } from './api/noaa';
+import TrendPanel from "./components/TrendPanel";
+
 
 function App() {
   // ---------- helpers ----------
@@ -233,11 +235,7 @@ function App() {
           </section>
         )}
 
-        <section className="features">
-          <article><h3>Live Data</h3><p>Visualise up-to-date observations.</p></article>
-          <article><h3>Alerts</h3><p>Subscribe to threshold conditions.</p></article>
-          <article><h3>Historical</h3><p>Explore long-term trends.</p></article>
-        </section>
+        <div className="container"><TrendPanel lat={35.2271} lon={-80.8431} days={7} /></div>
 
         <section className="search-locations">
           <article>
