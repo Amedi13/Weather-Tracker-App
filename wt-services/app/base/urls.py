@@ -3,9 +3,10 @@ from . import views
 
 # HTTP operations are routed here
 
-urlpatterns =[
+urlpatterns = [
     path('', views.getData),
-    path('api/data/', views.weather_data),
     path('api/locations/', views.get_locations),
-    #path('', views.postData)
+    path('api/data/', views.weather_data),
+    path('api/trends/', views.trends)
+
 ]
