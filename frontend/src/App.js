@@ -3,11 +3,11 @@ import './App.css';
 import { getDatasets, getObservations, search_locations } from './api/noaa';
 import TrendPanel from "./components/TrendPanel";
 
-
 function App() {
   // ---------- helpers ----------
   const iso = (d) => d.toISOString().slice(0, 10);                 // YYYY-MM-DD
-  const toC = (v) => (typeof v === 'number' ? v / 10 : null);       // GHCND tenths °C
+  const toC = (v) => (typeof v === 'number' ? v / 10 : null);      // GHCND tenths °C
+
   const groupObsByDate = (rows = []) => {
     const map = {};
     rows.forEach((r) => {
@@ -23,9 +23,16 @@ function App() {
   // ---------- refs ----------
   const todayRef = useRef(null);
   const forecastRef = useRef(null);
+  const datasetRef = useRef(null);
 
   // ---------- datasets preview ----------
   const [details, setDetails] = useState([]);
+
+  // sample data for a selected dataset
+  const [selectedDataset, setSelectedDataset] = useState(null);
+  const [datasetSample, setDatasetSample] = useState([]);
+  const [loadingDatasetSample, setLoadingDatasetSample] = useState(false);
+  const [datasetSampleError, setDatasetSampleError] = useState('');
 
   // ---------- seven-day forecast (TMAX) ----------
   const [forecastVisible, setForecastVisible] = useState(false);
@@ -59,7 +66,7 @@ function App() {
       });
   }, []);
 
-  // Data call – 7-day TMAX for Charlotte station
+  // ---------- load 7-day TMAX for Charlotte ----------
   const loadSevenDayTmax = async () => {
     if (forecastVisible) {
       setForecastVisible(false);
@@ -88,7 +95,6 @@ function App() {
 
       setForecast(rows);
       setForecastVisible(true);
-      // scroll into view
       setTimeout(() => {
         forecastRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
@@ -100,7 +106,7 @@ function App() {
     }
   };
 
-  // Single day sample
+  // ---------- single day sample ----------
   const loadTodaySample = async () => {
     if (todayVisible) {
       setTodayVisible(false);
@@ -149,7 +155,44 @@ function App() {
     }
   };
 
-  // Search locations -> auto-fetch last 7 days TMAX/TMIN for first match
+  // ---------- dataset sample loader (dynamic dataset id) ----------
+  const loadDatasetSample = async (dataset) => {
+    if (!dataset || !dataset.id) return;
+
+    setSelectedDataset(dataset);
+    setDatasetSample([]);
+    setDatasetSampleError('');
+    setLoadingDatasetSample(true);
+
+    try {
+      const end = new Date();
+      const start = new Date();
+      start.setDate(end.getDate() - 6); // last 7 days
+
+      const data = await getObservations({
+        datasetid: dataset.id,                 // 🔥 dynamic from dataset card
+        stationid: 'GHCND:USW00013881',        // Charlotte station
+        datatypeid: ['TMAX', 'TMIN'],          // so we can reuse groupObsByDate
+        startdate: iso(start),
+        enddate: iso(end),
+        limit: 1000,
+      });
+
+      const grouped = groupObsByDate(data?.results || []);
+      setDatasetSample(grouped);
+
+      setTimeout(() => {
+        datasetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 150);
+    } catch (err) {
+      console.error('dataset sample error:', err.response?.status, err.response?.data || err.message);
+      setDatasetSampleError('Could not load sample data for this dataset.');
+    } finally {
+      setLoadingDatasetSample(false);
+    }
+  };
+
+  // ---------- search locations ----------
   const handleSearchLocations = async () => {
     if (!locationQuery.trim()) {
       setSearchError('Please enter a location to search.');
@@ -180,8 +223,7 @@ function App() {
         });
 
         const grouped = groupObsByDate(data?.results || []);
-        setLocationDataResults(grouped); // [{date, tmax_c, tmin_c}, ...]
-        console.log('Location Data Results:', grouped);
+        setLocationDataResults(grouped);
       } else {
         setLocationDataResults([]);
       }
@@ -206,7 +248,6 @@ function App() {
             </button>
 
             <a className="btn primary" href="/datasets">View Data</a>
-            <a className="btn ghost" href="/about">Learn More</a>
 
             <button className="btn primary" onClick={loadSevenDayTmax}>
               {forecastVisible ? 'Hide 7-day TMAX' : 'Show 7-day TMAX'}
@@ -234,8 +275,6 @@ function App() {
             </div>
           </section>
         )}
-
-        <div className="container"><TrendPanel lat={35.2271} lon={-80.8431} days={7} /></div>
 
         <section className="search-locations">
           <article>
@@ -286,6 +325,10 @@ function App() {
           </article>
         </section>
 
+        <div className="container">
+          <TrendPanel lat={35.2271} lon={-80.8431} days={7} />
+        </div>
+
         <section className="preview">
           <h2>Latest datasets</h2>
           <div className="cards">
@@ -296,11 +339,59 @@ function App() {
                 <div className="card" key={d.id || d.name}>
                   <h4>{d.name || d.title || 'Dataset'}</h4>
                   <p>{(d.detail || d.description || '').slice(0, 140) || 'No description'}</p>
+                  <button
+                    className="btn ghost"
+                    onClick={() => loadDatasetSample(d)}
+                    style={{ marginTop: '8px' }}
+                  >
+                    View sample for this dataset
+                  </button>
                 </div>
               ))
             )}
           </div>
         </section>
+
+        {/* dataset sample section */}
+        {selectedDataset && (
+          <section className="forecast" ref={datasetRef}>
+            <h2>
+              Sample for {selectedDataset.name || selectedDataset.id} ({selectedDataset.id})
+            </h2>
+            <p className="muted">
+              Last 7 days near Charlotte (station GHCND:USW00013881) using this dataset.
+            </p>
+
+            {loadingDatasetSample && <p className="muted">Loading dataset sample…</p>}
+            {datasetSampleError && (
+              <p className="muted" style={{ color: 'crimson' }}>
+                {datasetSampleError}
+              </p>
+            )}
+
+            {!loadingDatasetSample && !datasetSampleError && (
+              <div className="cards">
+                {datasetSample.length === 0 ? (
+                  <p className="muted">No data available for this dataset.</p>
+                ) : (
+                  datasetSample.map((d) => (
+                    <div className="card" key={d.date}>
+                      <h4>{d.date}</h4>
+                      <p>
+                        Max:{' '}
+                        {d.tmax_c != null ? `${d.tmax_c.toFixed(1)}°C` : 'N/A'}
+                      </p>
+                      <p>
+                        Min:{' '}
+                        {d.tmin_c != null ? `${d.tmin_c.toFixed(1)}°C` : 'N/A'}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </section>
+        )}
 
         <section className="forecast" ref={forecastRef}>
           {loadingForecast && <p className="muted">Loading 7-day TMAX…</p>}

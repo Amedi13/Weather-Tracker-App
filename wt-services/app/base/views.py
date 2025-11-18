@@ -347,4 +347,43 @@ def get_locations(request):
         return JsonResponse({"error": "noaa_http_error", "detail": str(e)}, status=502)
     except Exception as e:
         return JsonResponse({"error": "server_error", "detail": str(e)}, status=500)
-    
+
+# views.py
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.conf import settings
+import logging
+
+log = logging.getLogger(__name__)
+
+# existing:
+# def _noaa_request(endpoint, params=None): ...
+
+@api_view(["GET"])
+def list_datasets(request):
+    """
+    Proxy to NOAA /datasets with a simple limit param.
+    """
+    limit = request.query_params.get("limit", 5)
+
+    try:
+        limit = int(limit)
+    except (TypeError, ValueError):
+        limit = 5
+
+    params = {"limit": limit}
+
+    resp = _noaa_request("datasets", params=params)
+
+    if resp.status_code != 200:
+        log.error(
+            "NOAA /datasets failed: %s %s",
+            resp.status_code,
+            resp.text[:500],
+        )
+        return Response(
+            {"error": "NOAA /datasets failed"},
+            status=resp.status_code,
+        )
+
+    return Response(resp.json())
