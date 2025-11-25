@@ -2,9 +2,7 @@ import logging
 from datetime import datetime, timedelta
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-
-from .models import React
-from .serializer import ReactSerializer
+from django.http import HttpResponse
 from django.conf import settings
 import requests
 from requests.adapters import HTTPAdapter
@@ -12,6 +10,20 @@ from urllib3.util.retry import Retry
 from django.utils import timezone
 import math
 from django.http import JsonResponse
+# views.py
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.conf import settings
+import logging
+
+#Map Purposes
+import folium
+from django.shortcuts import render
+from django.views.decorators.clickjacking import xframe_options_exempt
+import geocoder
+from folium.plugins import HeatMap
+import numpy as np
+
 # Configure logger
 log = logging.getLogger(__name__)
 NOAA_TIMEOUT_SECS = 20
@@ -348,11 +360,6 @@ def get_locations(request):
     except Exception as e:
         return JsonResponse({"error": "server_error", "detail": str(e)}, status=500)
 
-# views.py
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from django.conf import settings
-import logging
 
 log = logging.getLogger(__name__)
 
@@ -387,3 +394,34 @@ def list_datasets(request):
         )
 
     return Response(resp.json())
+
+# Gets the coordinates of the current user using there IP address
+def get_coordinates():
+    current_location = geocoder.ip("me")
+
+    if current_location and current_location.latlng:
+        latitude, longitude = current_location.latlng
+    
+    return latitude, longitude
+    
+
+@api_view(["GET"]) 
+@xframe_options_exempt
+def get_map_html(request):#no need for request for now
+    latitude, longitude = get_coordinates()
+    
+    #heat map data points
+    heat_data = np.random.normal(size=(100, 2), loc=[latitude, longitude], scale=0.1).tolist()
+    
+    m = folium.Map(location=[latitude, longitude], zoom_start=10)
+    folium.Marker(
+        location=[latitude, longitude],
+        tooltip="Your Area",
+        popup="Mt. Hood Meadows",
+        icon=folium.Icon(icon="cloud"),
+    ).add_to(m)
+    
+    HeatMap(heat_data).add_to(m)
+    return HttpResponse(m._repr_html_())
+
+    

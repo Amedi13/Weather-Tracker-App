@@ -9,5 +9,5 @@ urlpatterns = [
     path('api/data/', views.weather_data),
     path('api/trends/', views.trends),
     path('api/datasets/', views.list_datasets),
-
+    path('api/map-html/', views.get_map_html),  # New route for map HTML
 ]
