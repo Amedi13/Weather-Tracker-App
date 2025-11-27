@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './App.css';
-import { getDatasets, getObservations, search_locations } from './api/noaa';
+import { getDatasets, getObservations, search_locations, getMaphtml } from './api/noaa';
 import TrendPanel from "./components/TrendPanel";
 
 function App() {
@@ -56,7 +56,7 @@ function App() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [locationDataResults, setLocationDataResults] = useState([]);
-
+ 
   useEffect(() => {
     getDatasets(3)
       .then((d) => setDetails(d?.results || []))
@@ -248,7 +248,8 @@ function App() {
             </button>
 
             <a className="btn primary" href="/datasets">View Data</a>
-
+            <a className = "btn primary" href="/com">View Map</a>
+            
             <button className="btn primary" onClick={loadSevenDayTmax}>
               {forecastVisible ? 'Hide 7-day TMAX' : 'Show 7-day TMAX'}
             </button>
@@ -350,6 +351,12 @@ function App() {
               ))
             )}
           </div>
+        </section>
+        
+        {/*----Map Section----*/}
+        <section className="map-section">
+          <h2>Map</h2>
+          <iframe src="http://localhost:8000/api/map-html/" title="Weather Map" width="100%" height="500px" style={{ border: 'none' }}></iframe>
         </section>
 
         {/* dataset sample section */}

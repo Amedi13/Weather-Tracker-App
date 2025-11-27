@@ -1,0 +1,41 @@
+# Start all services for the WeatherTracker application 
+
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./wt-services
+      dockerfile: Dockerfile
+    container_name: backend
+    command: gunicorn app.wsgi:application --bind 0.0.0.0:8000 --workers=3
+    env_file:
+      - ./wt-services/app/.env
+    expose:
+      - "8000"
+    depends_on:
+      - migrate
+    restart: unless-stopped
+
+  migrate:
+    build:
+      context: ./wt-services
+      dockerfile: Dockerfile
+    container_name: backend_migrations
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput || true"
+    env_file:
+      - ./wt-services/app/.env
+    restart: "no"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped

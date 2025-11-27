@@ -110,3 +110,10 @@ export const search_locations = async (params = {}) => {
   }
 };
 
+/**
+ * render map html from backend
+ */
+export const getMaphtml = async () => {
+  const { data } = await api.get(`/api/map-html/`);
+  return data;
+}
