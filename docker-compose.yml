@@ -5,21 +5,21 @@ version: "3.9"
 services:
   backend:
     build:
-      context: ./wt-services
+      context: ./wt-services/app
       dockerfile: Dockerfile
     container_name: backend
-    command: gunicorn app.wsgi:application --bind 0.0.0.0:8000 --workers=3
+   # command: gunicorn wtapp.wsgi:application --bind 0.0.0.0:8000 --workers=3
     env_file:
       - ./wt-services/app/.env
-    expose:
-      - "8000"
+    ports:
+      - "8000:8000"
     depends_on:
       - migrate
     restart: unless-stopped
 
   migrate:
     build:
-      context: ./wt-services
+      context: ./wt-services/app
       dockerfile: Dockerfile
     container_name: backend_migrations
     command: >
@@ -35,7 +35,7 @@ services:
       dockerfile: Dockerfile
     container_name: frontend
     ports:
-      - "80:80"
+      - "3000:3000"
     depends_on:
       - backend
     restart: unless-stopped
