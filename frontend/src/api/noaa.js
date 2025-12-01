@@ -42,42 +42,31 @@ export const search_locations = async (params = {}) => {
   let normalized = params;
 
   try {
-    // Allow simple string usage: search_locations("Charlotte")
-    if (typeof params === "string") {
-      normalized = { q: params.trim() };
-    }
+    if (typeof params === "string") normalized = { q: params.trim() };
 
-    if (!normalized || typeof normalized !== "object") {
-      normalized = {};
-    }
+    if (!normalized || typeof normalized !== "object") normalized = {};
 
-    // Normalize q formatting a bit: collapse whitespace, tidy commas
     if (normalized.q) {
       normalized.q = normalized.q
-        .replace(/\s*,\s*/g, ", ") // "Charlotte,NC" -> "Charlotte, NC"
-        .replace(/\s+/g, " ")      // collapse spaces
+        .replace(/\s*,\s*/g, ", ")
+        .replace(/\s+/g, " ")
         .trim();
     }
 
-    // Sensible defaults
     if (normalized.limit == null) normalized.limit = 1000;
-    if (normalized.locationcategoryid == null) normalized.locationcategoryid = "CITY";
+    if (normalized.locationcategoryid == null)
+      normalized.locationcategoryid = "CITY";
     if (!normalized.sortfield) normalized.sortfield = "name";
 
     const { data } = await api.get("/api/locations/", { params: normalized });
 
-    // ---- City-only search: allow loose matching for suggestions ----
-    //
-    // If the user typed just a city name like "Charlotte" (no comma, no country),
-    // filter the returned locations to anything whose name contains that text.
+    // loose match for short city names
     if (typeof params === "string") {
       const raw = params.trim();
       if (raw && !raw.includes(",")) {
         const qLower = raw.toLowerCase();
-
         const rawResults = data?.results ?? data ?? [];
         const arr = Array.isArray(rawResults) ? rawResults : [rawResults];
-
         const filtered = arr.filter((loc) => {
           const name = (
             loc.name ||
@@ -88,32 +77,67 @@ export const search_locations = async (params = {}) => {
           ).toLowerCase();
           return name.includes(qLower);
         });
-
         return { ...data, results: filtered };
       }
     }
 
     return data;
   } catch (err) {
-    // Centralized logging
     console.error("search_locations error:", err?.response || err);
-
-    // Normalize the error so callers can display something consistent
     const message =
       err?.response?.data?.detail ||
       err?.response?.data?.message ||
       err.message ||
       "Location search failed";
-
-    // Re-throw a clean Error for the caller's try/catch (your App already has one)
     throw new Error(message);
   }
 };
 
 /**
- * render map html from backend
+ * Render map HTML from backend
  */
 export const getMaphtml = async () => {
   const { data } = await api.get(`/api/map-html/`);
   return data;
-}
+};
+
+/**
+ * Fetch daily forecast (aggregated OWM free-tier forecast)
+ * GET /api/forecast/daily?lat&lon&days&units
+ */
+export const fetchDailyForecast = async ({
+  lat,
+  lon,
+  days = 5,
+  units = "metric",
+}) => {
+  const { data } = await api.get(`/api/forecast/daily`, {
+    params: { lat, lon, days, units },
+  });
+  return data;
+};
+
+/**
+ * Fetch NOAA NWS 7-day daily forecast (no key needed)
+ * GET /api/nws?lat&lon&days
+ */
+export const fetchNws = async ({ lat, lon, days = 7 }) => {
+  const { data } = await api.get(`/api/nws`, { params: { lat, lon, days } });
+  return data;
+};
+
+/**
+ * Fetch aggregated trend analysis (EWMA-smoothed)
+ * GET /api/trends?lat&lon&days&units
+ */
+export const fetchTrends = async ({
+  lat,
+  lon,
+  days = 7,
+  units = "metric",
+}) => {
+  const { data } = await api.get(`/api/trends`, {
+    params: { lat, lon, days, units },
+  });
+  return data;
+};

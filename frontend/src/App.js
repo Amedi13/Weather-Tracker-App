@@ -1,6 +1,10 @@
 import React, { useEffect, useState, useRef } from 'react';
 import './App.css';
-import { getDatasets, getObservations, search_locations, getMaphtml } from './api/noaa';
+import {
+  getObservations,
+  search_locations,
+  fetchDailyForecast,
+} from './api/noaa';
 import TrendPanel from "./components/TrendPanel";
 
 function App() {
@@ -23,24 +27,18 @@ function App() {
   // ---------- refs ----------
   const todayRef = useRef(null);
   const forecastRef = useRef(null);
-  const datasetRef = useRef(null);
 
-  // ---------- datasets preview ----------
-  const [details, setDetails] = useState([]);
+  // ---------- units ----------
+  const [units, setUnits] = useState("imperial"); // "metric" or "imperial"
+  const unitLabel = units === "metric" ? "°C" : "°F";
 
-  // sample data for a selected dataset
-  const [selectedDataset, setSelectedDataset] = useState(null);
-  const [datasetSample, setDatasetSample] = useState([]);
-  const [loadingDatasetSample, setLoadingDatasetSample] = useState(false);
-  const [datasetSampleError, setDatasetSampleError] = useState('');
-
-  // ---------- seven-day forecast (TMAX) ----------
+  // ---------- seven-day forecast (from /api/forecast/daily) ----------
   const [forecastVisible, setForecastVisible] = useState(false);
   const [forecast, setForecast] = useState([]);
   const [loadingForecast, setLoadingForecast] = useState(false);
   const [forecastError, setForecastError] = useState('');
 
-  // ---------- single-day sample ----------
+  // ---------- single-day sample (NOAA CDO) ----------
   const [todayVisible, setTodayVisible] = useState(false);
   const [today, setToday] = useState(null);
   const [loadingToday, setLoadingToday] = useState(false);
@@ -56,17 +54,35 @@ function App() {
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [locationDataResults, setLocationDataResults] = useState([]);
- 
+
+  // ---------- alerts ----------
+  const [alertCount, setAlertCount] = useState(0);
+  const [alerts, setAlerts] = useState([]);
+  const [showAlerts, setShowAlerts] = useState(false);
+
+  const refreshAlerts = async () => {
+    try {
+      const lat = 35.2271, lon = -80.8431;
+      const res = await fetch(`http://127.0.0.1:8000/api/alerts?lat=${lat}&lon=${lon}`);
+      if (!res.ok) throw new Error(`alerts ${res.status}`);
+      const data = await res.json();
+      setAlertCount(data?.count || 0);
+      setAlerts(data?.alerts || []);
+    } catch (e) {
+      console.warn('alerts fetch failed:', e.message);
+      setAlertCount(0);
+      setAlerts([]);
+    }
+  };
+
+  // refresh alerts on mount and every 5 minutes
   useEffect(() => {
-    getDatasets(3)
-      .then((d) => setDetails(d?.results || []))
-      .catch((err) => {
-        console.error('datasets error:', err.response?.status, err.response?.data || err.message);
-        setDetails([]);
-      });
+    refreshAlerts();
+    const id = setInterval(refreshAlerts, 5 * 60 * 1000);
+    return () => clearInterval(id);
   }, []);
 
-  // ---------- load 7-day TMAX for Charlotte ----------
+  // ---------- load daily forecast from backend (OWM aggregated) ----------
   const loadSevenDayTmax = async () => {
     if (forecastVisible) {
       setForecastVisible(false);
@@ -75,22 +91,15 @@ function App() {
     setForecastError('');
     setLoadingForecast(true);
     try {
-      const end = new Date();
-      const start = new Date();
-      start.setDate(end.getDate() - 6); // last 7 days inclusive
+      const lat = 35.2271;
+      const lon = -80.8431;
 
-      const data = await getObservations({
-        datasetid: 'GHCND',
-        stationid: 'GHCND:USW00013881', // Charlotte Douglas AP
-        datatypeid: ['TMAX'],
-        startdate: iso(start),
-        enddate: iso(end),
-        limit: 1000,
-      });
+      const data = await fetchDailyForecast({ lat, lon, days: 5, units });
 
-      const rows = (data?.results || []).map((r) => ({
-        date: r.date.slice(0, 10),
-        max: toC(r.value),
+      // Normalize for simple list view: { date, max }
+      const rows = (data?.daily || []).map(d => ({
+        date: d.date,
+        max: typeof d.tMax === 'number' ? d.tMax : null
       }));
 
       setForecast(rows);
@@ -99,8 +108,8 @@ function App() {
         forecastRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 100);
     } catch (err) {
-      console.error('observations error:', err.response?.status, err.response?.data || err.message);
-      setForecastError('Could not fetch observations from /api/data/.');
+      console.error('forecast/daily error:', err.response?.status, err.response?.data || err.message);
+      setForecastError('Could not fetch daily forecast from /api/forecast/daily.');
     } finally {
       setLoadingForecast(false);
     }
@@ -152,43 +161,6 @@ function App() {
       setTodayError("Could not fetch today's sample observations.");
     } finally {
       setLoadingToday(false);
-    }
-  };
-
-  // ---------- dataset sample loader (dynamic dataset id) ----------
-  const loadDatasetSample = async (dataset) => {
-    if (!dataset || !dataset.id) return;
-
-    setSelectedDataset(dataset);
-    setDatasetSample([]);
-    setDatasetSampleError('');
-    setLoadingDatasetSample(true);
-
-    try {
-      const end = new Date();
-      const start = new Date();
-      start.setDate(end.getDate() - 6); // last 7 days
-
-      const data = await getObservations({
-        datasetid: dataset.id,                 // 🔥 dynamic from dataset card
-        stationid: 'GHCND:USW00013881',        // Charlotte station
-        datatypeid: ['TMAX', 'TMIN'],          // so we can reuse groupObsByDate
-        startdate: iso(start),
-        enddate: iso(end),
-        limit: 1000,
-      });
-
-      const grouped = groupObsByDate(data?.results || []);
-      setDatasetSample(grouped);
-
-      setTimeout(() => {
-        datasetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 150);
-    } catch (err) {
-      console.error('dataset sample error:', err.response?.status, err.response?.data || err.message);
-      setDatasetSampleError('Could not load sample data for this dataset.');
-    } finally {
-      setLoadingDatasetSample(false);
     }
   };
 
@@ -247,15 +219,21 @@ function App() {
               {showQueue ? 'Hide Pinned Locations' : 'Show Pinned Locations'}
             </button>
 
-            <a className="btn primary" href="/datasets">View Data</a>
-            <a className = "btn primary" href="/com">View Map</a>
-            
-            <button className="btn primary" onClick={loadSevenDayTmax}>
-              {forecastVisible ? 'Hide 7-day TMAX' : 'Show 7-day TMAX'}
-            </button>
-
             <button className="btn ghost" onClick={loadTodaySample}>
               {todayVisible ? "Hide today's sample" : "Show today's sample"}
+            </button>
+
+
+            {/* Alerts toggle with count */}
+            <button
+              className="btn warning"
+              onClick={() => {
+                setShowAlerts(v => !v);
+                if (!showAlerts) refreshAlerts();
+              }}
+              style={{ marginLeft: 8 }}
+            >
+              ⚠ Alerts ({alertCount})
             </button>
           </div>
         </div>
@@ -274,6 +252,30 @@ function App() {
               <button className="btn primary" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
               <button className="btn ghost"   style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
             </div>
+          </section>
+        )}
+
+        {/* Alerts drawer */}
+        {showAlerts && (
+          <section className="alerts">
+            <h3>Active Alerts near Charlotte</h3>
+            {alerts.length === 0 ? (
+              <p className="muted">No active alerts.</p>
+            ) : (
+              <div className="cards">
+                {alerts.map((a) => (
+                  <div className="card" key={a.id || a.headline}>
+                    <strong>{a.event}</strong>
+                    {a.severity && <span className="chip" style={{ marginLeft: 8 }}>{a.severity}</span>}
+                    <div className="muted" style={{ marginTop: 6 }}>{a.headline}</div>
+                    <div className="muted" style={{ marginTop: 6 }}>
+                      {a.effective ? `Effective: ${a.effective}` : ''}{a.ends ? ` · Ends: ${a.ends}` : ''}
+                    </div>
+                    {a.area && <div className="muted" style={{ marginTop: 6 }}>Area: {a.area}</div>}
+                  </div>
+                ))}
+              </div>
+            )}
           </section>
         )}
 
@@ -327,85 +329,22 @@ function App() {
         </section>
 
         <div className="container">
-          <TrendPanel lat={35.2271} lon={-80.8431} days={7} />
+          {/* Pass units to TrendPanel so it renders risk chips & temps in the chosen system */}
+          <TrendPanel lat={35.2271} lon={-80.8431} days={7} units={units} />
         </div>
 
-        <section className="preview">
-          <h2>Latest datasets</h2>
-          <div className="cards">
-            {details.length === 0 ? (
-              <p className="muted">No datasets available</p>
-            ) : (
-              details.map((d) => (
-                <div className="card" key={d.id || d.name}>
-                  <h4>{d.name || d.title || 'Dataset'}</h4>
-                  <p>{(d.detail || d.description || '').slice(0, 140) || 'No description'}</p>
-                  <button
-                    className="btn ghost"
-                    onClick={() => loadDatasetSample(d)}
-                    style={{ marginTop: '8px' }}
-                  >
-                    View sample for this dataset
-                  </button>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
-        
         {/*----Map Section----*/}
         <section className="map-section">
           <h2>Map</h2>
           <iframe src="http://localhost:8000/api/map-html/" title="Weather Map" width="100%" height="500px" style={{ border: 'none' }}></iframe>
         </section>
 
-        {/* dataset sample section */}
-        {selectedDataset && (
-          <section className="forecast" ref={datasetRef}>
-            <h2>
-              Sample for {selectedDataset.name || selectedDataset.id} ({selectedDataset.id})
-            </h2>
-            <p className="muted">
-              Last 7 days near Charlotte (station GHCND:USW00013881) using this dataset.
-            </p>
-
-            {loadingDatasetSample && <p className="muted">Loading dataset sample…</p>}
-            {datasetSampleError && (
-              <p className="muted" style={{ color: 'crimson' }}>
-                {datasetSampleError}
-              </p>
-            )}
-
-            {!loadingDatasetSample && !datasetSampleError && (
-              <div className="cards">
-                {datasetSample.length === 0 ? (
-                  <p className="muted">No data available for this dataset.</p>
-                ) : (
-                  datasetSample.map((d) => (
-                    <div className="card" key={d.date}>
-                      <h4>{d.date}</h4>
-                      <p>
-                        Max:{' '}
-                        {d.tmax_c != null ? `${d.tmax_c.toFixed(1)}°C` : 'N/A'}
-                      </p>
-                      <p>
-                        Min:{' '}
-                        {d.tmin_c != null ? `${d.tmin_c.toFixed(1)}°C` : 'N/A'}
-                      </p>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-          </section>
-        )}
-
         <section className="forecast" ref={forecastRef}>
-          {loadingForecast && <p className="muted">Loading 7-day TMAX…</p>}
+          {loadingForecast && <p className="muted">Loading daily forecast…</p>}
           {forecastError && <p className="muted" style={{ color: 'crimson' }}>{forecastError}</p>}
           {forecastVisible && !loadingForecast && (
             <>
-              <h2>This week's TMAX (Charlotte)</h2>
+              <h2>This week's Daily Forecast (Charlotte)</h2>
               <div className="cards">
                 {forecast.length === 0 ? (
                   <p className="muted">No data available.</p>
@@ -415,7 +354,7 @@ function App() {
                       <h4>{f.date}</h4>
                       <p>
                         {f.max != null ? (
-                          <strong>{f.max.toFixed(1)}°C</strong>
+                          <strong>{Number(f.max).toFixed(1)}{unitLabel}</strong>
                         ) : (
                           <span className="muted">Temperature unavailable</span>
                         )}
