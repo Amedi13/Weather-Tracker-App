@@ -75,6 +75,50 @@
 .card { flex:1 1 280px; border:1px solid #e6eef8; padding:1rem; border-radius:8px; background:#fff; }
 .muted { color:#6b7280; }
 
+
+
+
+
+
+
+
+{/* below is for queue buttons*/}
+.big-queue-button {
+  text-decoration: none;
+  padding: 20px 100px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 1.2rem;
+  background-color: #f7f9fc;
+  color: black;
+  border: none;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.sub-buttons {
+display: flex;
+flex-direction: row;
+gap: 10px;
+margin-top: 10px;
+height: 50px;
+justify-content: center;
+}
+
+
+
+
+
+
+
+{/*above is for queue buttons */}
+
+
+
+
+
 .forecast { margin-top:2rem; }
 .forecast .cards { margin-top:0.75rem; }
 

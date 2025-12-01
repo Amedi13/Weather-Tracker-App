@@ -39,13 +39,95 @@ function App() {
   const [loadingToday, setLoadingToday] = useState(false);
   const [todayError, setTodayError] = useState('');
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // ---------- pinned locations toggle ----------
   const [showQueue, setShowQueue] = useState(false);
   const toggleQueue = () => setShowQueue((v) => !v);
 
+/*For pinned locations above. it toggles the visibility of the button to show
+ and hide the button.
+
+ When visible, it needs to show implemented pinned locations
+*/
+
+{/* for additional sub buttons four each of the main four pin location buttons */}
+const [moreSubButtons1, setShowSubButtons1] = useState(false);
+const [moreSubButtons2, setShowSubButtons2] = useState(false);
+const [moreSubButtons3, setShowSubButtons3] = useState(false);
+const [moreSubButtons4, setShowSubButtons4] = useState(false);
+
+
+{/* for toggling the visibility of these additional sub buttons */}
+const toggleMoreSubButtons1 = () => setShowSubButtons1(!moreSubButtons1);
+const toggleMoreSubButtons2 = () => setShowSubButtons2(!moreSubButtons2);
+const toggleMoreSubButtons3 = () => setShowSubButtons3(!moreSubButtons3);
+const toggleMoreSubButtons4 = () => setShowSubButtons4(!moreSubButtons4);
+
+
+
+
   // ---------- search UI state ----------
   const [locationQuery, setLocationQuery] = useState('');
+
+
+
+
+
   const [locationResults, setLocationResults] = useState([]);
+
+
+
+
+
+
+{/* sub button below useState...added below if needed... */}
+
+const ButtonWithSubButtons = () => {
+const [showSubButtons, setShowSubButtons] = useState(false);
+
+{/* for main button clicking added below if needed...*/}
+
+const handleMainButtonClick = () => {
+setShowSubButtons(showSubButtons => !showSubButtons);
+};
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const [searchLoading, setSearchLoading] = useState(false);
   const [searchError, setSearchError] = useState('');
   const [locationDataResults, setLocationDataResults] = useState([]);
@@ -201,9 +283,18 @@ function App() {
           <h1>Weather Tracker</h1>
           <p className="tagline">Real-time weather data, alerts and historical trends.</p>
           <div className="cta-row">
+
+
+
+
             <button className="btn primary" onClick={toggleQueue}>
               {showQueue ? 'Hide Pinned Locations' : 'Show Pinned Locations'}
             </button>
+
+
+
+
+
 
             <a className="btn primary" href="/datasets">View Data</a>
             <a className="btn ghost" href="/about">Learn More</a>
@@ -220,20 +311,191 @@ function App() {
       </header>
 
       <main className="container">
-        {showQueue && (
-          <section
-            className="queue-interface"
-            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '40px' }}
-          >
-            <h2 style={{ textAlign: 'center' }}>Pin Locations Below</h2>
-            <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-              <button className="btn primary" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
-              <button className="btn ghost"   style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
-              <button className="btn primary" style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
-              <button className="btn ghost"   style={{ flex: '1', padding: '20px 100px', fontSize: '1.2rem', backgroundColor: '#f7f9fc', color: 'black', border: 'none', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>Pin location here</button>
-            </div>
-          </section>
-        )}
+
+
+
+
+
+
+
+
+
+
+{/* 1*/}
+{/*modified buttons below for better visibility. jason */}
+
+  {showQueue && (
+  <section style={{ marginBottom: '40px' }}>
+    <h2 style={{ textAlign: 'center' }}>Pin Locations Below</h2>
+    <div className="cta-row">
+
+    {/* first main button below... also can't get first one formatted correctly on buttons*/}
+<div>
+      <button className="big-queue-button" onClick={toggleMoreSubButtons1}>Charlotte, NC US</button>
+    {moreSubButtons1 && (
+<div>
+    <button className='big-queue-button'>2025-11-27
+
+    Max: 15.3°C
+
+    Min: 11.2°C</button>
+    <button className='big-queue-button'>2025-11-28
+
+    Max: 19.3°C
+
+    Min: 13.2°C</button>
+    <button className='big-queue-button'> 2025-11-29
+
+     Max: 16.4°C
+
+     Min: 8.2°C</button>
+    <button className='big-queue-button'> 2025-11-30
+
+     Max: 11.7°C
+
+     Min: 9.2°C</button>
+    <button className='big-queue-button'>2025-12-1
+
+    Max: 12.3°C
+
+    Min: 5.9°C</button>
+</div>
+)}
+    </div>
+
+
+
+{/* second main button below...  */}
+<div>
+      <button className="big-queue-button" onClick={toggleMoreSubButtons2}>Wilmington, NC US</button>
+      {moreSubButtons2 && (
+      <div>
+
+
+    <button className='big-queue-button'> 2025-11-27
+
+     Max:11.3°C
+
+     Min: 4.1°C</button>
+    <button className='big-queue-button'> 2025-11-28
+
+     Max:13.6°C
+
+     Min:5.5°C</button>
+    <button className='big-queue-button'> 2025-11-29
+
+     Max:17.1°C
+
+     Min:6.3°C</button>
+    <button className='big-queue-button'> 2025-11-30
+
+     Max:14.5°C
+
+     Min:8.1°C</button>
+    <button className='big-queue-button'> 2025-12-1
+
+     Max:12.9°C
+
+     Min:5.2°C</button>
+</div>
+      )}
+      </div>
+
+
+
+
+
+
+{/* third main button below...*/}
+<div>
+      <button className="big-queue-button" onClick={toggleMoreSubButtons3}>Raleigh, NC US</button>
+      {moreSubButtons3 && (
+      <div>
+
+    <button className='big-queue-button'> 2025-11-27
+
+     Max:11.3°C
+
+     Min:2.9°C</button>
+    <button className='big-queue-button'> 2025-11-28
+
+     Max:12.3°C
+
+     Min:5.4°C</button>
+    <button className='big-queue-button'> 2025-11-29
+
+     Max:13.7°C
+
+     Min:8.2°C</button>
+    <button className='big-queue-button'> 2025-11-30
+
+     Max:11.4°C
+
+     Min:5.2°C</button>
+    <button className='big-queue-button'> 2025-12-1
+
+     Max:11.8°C
+
+     Min:7.3°C</button>
+</div>
+
+
+      )}
+      </div>
+
+
+
+
+
+
+
+{/* fourth main button below...*/}
+<div>
+      <button className="big-queue-button" onClick={toggleMoreSubButtons4}>Durham, NC US</button>
+      {moreSubButtons4 && (
+      <div>
+
+    <button className='big-queue-button'> 2025-11-27
+
+     Max:11.9°C
+
+     Min:6.1°C</button>
+    <button className='big-queue-button'> 2025-11-28
+
+     Max:14.4°C
+
+     Min:9.7°C</button>
+    <button className='big-queue-button'> 2025-11-29
+
+     Max:11.9°C
+
+     Min:3.8°C</button>
+    <button className='big-queue-button'> 2025-11-30
+
+     Max:17.8°C
+
+     Min:8.7°C</button>
+    <button className='big-queue-button'> 2025-12-1
+
+     Max:19.2°C
+
+     Min:9.2°C</button>
+</div>
+)}
+</div>
+
+
+
+    </div>
+  </section>
+)}
+
+
+
+
+
+
+
 
         <div className="container"><TrendPanel lat={35.2271} lon={-80.8431} days={7} /></div>
 
@@ -255,6 +517,11 @@ function App() {
 
             {searchError && <p className="muted" style={{ color: 'crimson' }}>{searchError}</p>}
 
+
+
+
+
+
             {locationResults.length > 0 && (
               <div style={{ marginTop: 12 }}>
                 <h4>Results</h4>
@@ -266,6 +533,10 @@ function App() {
                     </div>
                   ))}
                 </div>
+
+
+
+
 
                 {locationDataResults.length > 0 && (
                   <div style={{ marginTop: 12 }}>
