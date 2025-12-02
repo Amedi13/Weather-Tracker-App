@@ -68,7 +68,7 @@ function App() {
 
   const refreshAlerts = async (lat, lon) => {
     try {
-      const res = await fetch(`http://127.0.0.1:8000/api/alerts?lat=${lat}&lon=${lon}`);
+      const res = await fetch(`http://backend:8000/api/alerts?lat=${lat}&lon=${lon}`);
       if (!res.ok) throw new Error(`alerts ${res.status}`);
       const data = await res.json();
       setAlertCount(data?.count || 0);
