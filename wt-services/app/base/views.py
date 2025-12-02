@@ -76,10 +76,6 @@ def get_owm_session():
     return _OWM_SESSION
 
 def _owm_request(path, params=None):
-    """
-    Generic OWM request helper. Adds ?appid= automatically.
-    path: e.g., '/data/2.5/weather' or '/data/2.5/forecast'
-    """
     base = getattr(settings, "OWM_BASE_URL", "https://api.openweathermap.org").rstrip("/")
     key  = getattr(settings, "OWM_API_KEY", None)
     if not key:
@@ -129,6 +125,7 @@ def _ewma(arr, alpha=0.35):
     return out
 
 def _avg(a): return sum(a)/len(a) if a else 0.0
+
 def _std(a):
     if not a: return 0.0
     m = _avg(a)
@@ -136,7 +133,7 @@ def _std(a):
 def _clamp(x, lo, hi): return max(lo, min(hi, x))
 
 # -----------------------------
-# Simple current-weather endpoint
+# current-weather endpoint
 # -----------------------------
 @api_view(["GET"])
 def weather_data(request):
@@ -586,7 +583,8 @@ def get_map_html(request):#no need for request for now
 def alerts(request):
     import requests
     try:
-        lat = float(request.GET.get("lat")); lon = float(request.GET.get("lon"))
+        lat = float(request.GET.get("lat"))
+        lon = float(request.GET.get("lon"))
     except (TypeError, ValueError):
         return Response({"error": "lat & lon required"}, status=400)
 
@@ -594,19 +592,31 @@ def alerts(request):
     hdrs = {"User-Agent": "WeatherTracker/1.0 (student project) blank@example.com"}
     try:
         r = requests.get(url, headers=hdrs, timeout=10)
-        r.raise_for_status()
-        feats = (r.json().get("features") or [])
+        if not getattr(r, "ok", False):
+            # Return structured error without raise_for_status
+            try:
+                detail = r.json()
+            except Exception:
+                detail = (getattr(r, "text", "") or "")[:500]
+            return Response(
+                {"error": "nws_error", "message": detail},
+                status=getattr(r, "status_code", 502),
+            )
+
+        payload = r.json() or {}
+        feats = payload.get("features") or []
         alerts = [{
             "id": f.get("id"),
-            "event": f["properties"].get("event"),
-            "severity": f["properties"].get("severity"),
-            "headline": f["properties"].get("headline"),
-            "effective": f["properties"].get("effective"),
-            "ends": f["properties"].get("ends"),
-            "area": f["properties"].get("areaDesc"),
-            "polygon": f.get("geometry"),  # GeoJSON
+            "event": (f.get("properties") or {}).get("event"),
+            "severity": (f.get("properties") or {}).get("severity"),
+            "headline": (f.get("properties") or {}).get("headline"),
+            "effective": (f.get("properties") or {}).get("effective"),
+            "ends": (f.get("properties") or {}).get("ends"),
+            "area": (f.get("properties") or {}).get("areaDesc"),
+            "polygon": f.get("geometry"),
         } for f in feats]
         return Response({"count": len(alerts), "alerts": alerts}, status=200)
     except requests.RequestException as e:
         return Response({"error": "nws_error", "message": str(e)}, status=502)
+
 
