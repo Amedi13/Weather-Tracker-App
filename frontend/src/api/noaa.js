@@ -5,6 +5,8 @@ const api = axios.create({
   timeout: 10000,
 });
 
+export { api };
+
 // Serialize arrays as repeated keys (datatypeid=TMAX&datatypeid=TMIN)
 const paramsSerializer = (params) => {
   const usp = new URLSearchParams();

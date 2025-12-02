@@ -296,28 +296,44 @@ function App() {
                       key={p.id}
                       style={{
                         borderColor: active ? 'rgba(34,197,94,0.8)' : undefined,
-                        boxShadow: active ? '0 0 0 2px rgba(34,197,94,0.25), 0 10px 30px rgba(15,23,42,0.9)' : undefined,
+                        boxShadow: active
+                          ? '0 0 0 2px rgba(34,197,94,0.25), 0 10px 30px rgba(15,23,42,0.9)'
+                          : undefined,
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                      <div className="pinned-card-inner">
                         <div>
                           <h4 style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             {p.name}{p.state ? `, ${p.state}` : ''}{p.country ? `, ${p.country}` : ''}
-                            {active && <span style={chipStyle}>Active</span>}
                           </h4>
-                          <div className="muted">lat: {p.lat}, lon: {p.lon}</div>
+                          <div className="muted">
+                            lat: {typeof p.lat === 'number' ? p.lat.toFixed(4) : p.lat},
+                            {' '}
+                            lon: {typeof p.lon === 'number' ? p.lon.toFixed(4) : p.lon}
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', gap: 8 }}>
+
+                        <div className="pinned-card-actions">
+                          {active ? (
+                            // Active card: show green pill in same place as "Set Active" button
+                            <span style={chipStyle}>Active</span>
+                          ) : (
+                            // Inactive card: normal "Set Active" button
+                            <button
+                              className="btn subtle"
+                              onClick={() => setActiveLoc(p)}
+                              title="Set Active"
+                            >
+                              Set Active
+                            </button>
+                          )}
+
                           <button
-                            className="btn subtle"
-                            onClick={() => setActiveLoc(p)}
-                            disabled={active}
-                            title={active ? 'Already active' : 'Set Active'}
-                            style={active ? { opacity: 0.6, cursor: 'default' } : undefined}
+                            className="btn ghost"
+                            onClick={() => unpinLocation(p.id)}
                           >
-                            {active ? 'Active' : 'Set Active'}
+                            Unpin
                           </button>
-                          <button className="btn ghost" onClick={() => unpinLocation(p.id)}>Unpin</button>
                         </div>
                       </div>
                     </div>

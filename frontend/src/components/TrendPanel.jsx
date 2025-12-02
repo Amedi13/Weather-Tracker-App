@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import { api } from "../api/noaa";
 
 const toF = (c) => (c == null ? null : (c * 9) / 5 + 32);
 const toC = (f) => (f == null ? null : (f - 32) * 5 / 9);
@@ -34,7 +34,7 @@ export default function TrendPanel({ lat, lon, days = 7 }) {
     setLoading(true);
     setErr("");
 
-    axios
+    api
       .get("/api/trends/", { params: { lat, lon, days } })
       .then(({ data }) => alive && setData(data))
       .catch((e) =>
