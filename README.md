@@ -61,10 +61,6 @@ Note: run the follwoing commands
     **Create the react App**
 
     1. `cd Weather-Tracker-App/frontend`
-
-**Run Both Dokcer Containers**
-- Within the root project folder run the following command
-  `Docker compose up --build`
   
     2. `npm install`
 
@@ -72,3 +68,7 @@ Note: run the follwoing commands
 
 -You should see the React starter page at http://localhost:3000
 Leave this terminal running while you work on React.
+
+**Run Both Dokcer Containers**
+- Within the root project folder run the following command
+  `Docker compose up --build`
