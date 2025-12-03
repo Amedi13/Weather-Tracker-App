@@ -62,6 +62,10 @@ Note: run the follwoing commands
 
     1. `cd Weather-Tracker-App/frontend`
 
+**Run Both Dokcer Containers**
+- Within the root project folder run the following command
+  `Docker compose up --build`
+  
     2. `npm install`
 
     4. `npm start`
